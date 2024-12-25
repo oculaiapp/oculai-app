@@ -1,16 +1,11 @@
-// script.js
+// script.js (Complete)
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize animations
     initializeAnimations();
-    
-    // Create timeline
     createTimeline();
-    
-    // Handle scroll events
     handleScroll();
+    initializeMobileMenu();
 });
 
-// Animation handler
 function initializeAnimations() {
     const elements = document.querySelectorAll('.fade-in');
     
@@ -20,12 +15,13 @@ function initializeAnimations() {
                 entry.target.classList.add('visible');
             }
         });
+    }, {
+        threshold: 0.1
     });
     
     elements.forEach(element => observer.observe(element));
 }
 
-// Timeline creator
 function createTimeline() {
     const timelineData = [
         {
@@ -33,25 +29,21 @@ function createTimeline() {
             title: 'Launch of OculAI',
             description: 'Foundation establishment and initial AI model development'
         },
-        // Add more timeline items
-    ];
-    
-    const timelineContainer = document.querySelector('.timeline-container');
-    
-    timelineData.forEach(item => {
-        const timelineItem = createTimelineItem(item);
-        timelineContainer.appendChild(timelineItem);
-    });
-}
-
-// Smooth scroll handler
-function handleScroll() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector(this.getAttribute('href')).scrollIntoView({
-                behavior: 'smooth'
-            });
-        });
-    });
-}
+        {
+            year: 2025,
+            title: 'Clinical Trials Begin',
+            description: 'First partnerships with research institutions'
+        },
+        {
+            year: 2026,
+            title: 'FDA Approval',
+            description: 'First AI-powered diagnostic tool approved'
+        },
+        {
+            year: 2027,
+            title: 'Global Integration',
+            description: 'Integration with major health record systems'
+        },
+        {
+            year: 2028,
+            title: 'Mobile
