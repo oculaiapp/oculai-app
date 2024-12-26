@@ -261,24 +261,34 @@ footer {
     /* Hero Section */
     .hero {
         padding: 6rem 1rem;
+        display: flex;
+        width: 100%;
     }
 
     .hero h1 {
         font-size: 2.5rem; /* Smaller font size for mobile */
+        display: flex;
+        width: 100%;
     }
 
     .hero p {
         font-size: 1rem; /* Adjust paragraph size */
+        display: flex;
+        width: 100%;
     }
 
     .cta-button {
         padding: 0.75rem 1.5rem; /* Adjust button size */
+        display: flex;
+        width: 100%;
     }
 
     /* Features Section */
     .features {
         grid-template-columns: 1fr; /* Single-column layout for mobile */
         gap: 2rem;
+        display: flex;
+        width: 100%;
     }
 
     /* Timeline Section */
@@ -299,17 +309,23 @@ footer {
     /* Navbar */
     .nav-links {
         gap: 1.5rem; /* Adjust spacing between links for tablets */
+        display: flex;
+        width: 100%;
     }
 
     /* Features Section */
     .features {
         grid-template-columns: repeat(2, 1fr); /* Two-column layout for tablets */
         gap: 2rem;
+        display: flex;
+        width: 100%;
     }
 
     /* Team Section */
     .team-grid {
         grid-template-columns: repeat(2, 1fr); /* Two-column layout for tablets */
         gap: 2rem;
+        display: flex;
+        width: 100%;
     }
 }
