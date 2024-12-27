@@ -85,22 +85,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Send image to backend API for analysis
     async function sendImageToModel(imageData) {
         const formData = new FormData();
-        
-        // Convert base64 image data to a Blob object and append it as a file in formData.
         const blob = await (await fetch(imageData)).blob();
         formData.append('file', blob, 'image.jpg');
-
-        const response = await fetch('https://api-backend-5biy.onrender.com/predict', {
-            method: 'POST',
-            body: formData,
-            headers: {}
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to send image to backend');
+        
+        try {
+            const response = await fetch('your-render-api-endpoint/predict', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Model prediction failed');
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('Error:', error);
+            throw error;
         }
-
-        return await response.json();
     }
 
     // Display analysis results
