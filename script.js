@@ -86,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer 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',
-                'Content-Type': 'application/json'
             },
             body: blob
         });
