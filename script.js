@@ -66,51 +66,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function enhanceImage(imageDataURL) {
-        let image = await IJS.Image.load(imageDataURL);
-        let enhancedImage = image.grey().enhance({ algorithm: 'contrast' });
-        return enhancedImage.toDataURL();
+        const img = new Image();
+        img.src = imageDataURL;
+        await new Promise(resolve => img.onload = resolve);
+
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = img.width;
+        tempCanvas.height = img.height;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        return tempCanvas.toDataURL('image/jpeg', 0.9);
     }
 
     async function sendImageToModel(imageData) {
-        const formData = new FormData();
         const blob = await (await fetch(imageData)).blob();
-        formData.append('file', blob, 'image.jpg');
         
-        const response = await fetch('https://api-inference.huggingface.co/models/oculotest/smart-scanner-model', {
+        const response = await fetch('https://api-inference.huggingface.co/models/your-username/smart-scanner-model', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer hf_your_token_here'
+                'Authorization': 'Bearer hf_your_token_here',
+                'Content-Type': 'application/json'
             },
-            body: formData
+            body: blob
         });
         
         if (!response.ok) {
-            throw new Error('Failed to send image to backend');
+            throw new Error('Failed to process image');
         }
-        return await response.json();
+
+        const result = await response.json();
+        return {
+            predicted_label: result[0].label,
+            confidence: result[0].score * 100
+        };
     }
 
     function displayResult(message, result) {
+        const classLabels = {
+            0: 'Normal',
+            1: 'Mild',
+            2: 'Moderate',
+            3: 'Severe',
+            4: 'Proliferative'
+        };
+
         resultContent.innerHTML = `
             <div class="result-message">
                 <h3>${message}</h3>
                 <p>${result.predicted_label} (Confidence: ${result.confidence.toFixed(2)}%)</p>
             </div>
         `;
-    }
-
-    function uploadOfflineImages() {
-        for (let key in localStorage) {
-            if (key.startsWith('image-')) {
-                const imageData = localStorage.getItem(key);
-                sendImageToModel(imageData)
-                    .then(response => {
-                        console.log("Uploaded:", response);
-                        localStorage.removeItem(key);
-                    })
-                    .catch(error => console.error("Upload failed:", error));
-            }
-        }
     }
 
     toggleCameraBtn.addEventListener('click', () => {
@@ -142,8 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
         
-        let enhancedImageDataURL = await enhanceImage(canvas.toDataURL());
-        const quality = evaluateImageQuality(canvas);
+        let enhancedImageDataURL = await enhanceImage(canvas.toDataURL('image/jpeg', 0.9));
         
         loadingSpinner.classList.remove('hidden');
         
@@ -152,14 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingSpinner.classList.add('hidden');
             resultContainer.classList.remove('hidden');
             displayResult("Analysis Complete!", result);
-            localStorage.setItem(`image-${Date.now()}`, enhancedImageDataURL);
         } catch (error) {
             loadingSpinner.classList.add('hidden');
-            displayResult("Error during analysis", { error: "Failed to process image" });
+            displayResult("Error during analysis", { predicted_label: "Failed to process image", confidence: 0 });
         }
     });
 
-    window.addEventListener('online', uploadOfflineImages);
-    
     initCamera().then(() => addOverlayCanvas());
 });
