@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMART Scanner</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #video {
+            width: 350px;
+            height: 350px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="animate-header">
+            <h1>SMART Scanner</h1>
+            <p class="subtitle">One Model, Countless Diseases</p>
+        </header>
+        
+        <div class="scanner-container">
+            <div class="scanner-box">
+                <div id="camera-feed">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <div class="overlay">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/26/Fundus_of_eye_normal.jpg" alt="Eye Fundus" class="fundus-image">
+                    </div>
+                </div>
+                <div class="capture-overlay"></div>
+                
+            <button id="capture-btn" class="pulse">Capture Eye Image</button>
+            </div>
+            
+            <div class="camera-controls">
+                <button id="toggle-camera-btn">Turn Off Camera</button>
+                <button id="switch-camera-btn">Switch Camera</button>
+            </div>
+
+            <div id="result-container" class="hidden">
+                <div class="result-box">
+                    <h2>Analysis Result</h2>
+                    <div id="result-content"></div>
+                    <center>
+                        <div class="loading-spinner hidden"></div>
+                    </center>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
