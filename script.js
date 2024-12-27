@@ -82,10 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
     async function sendImageToModel(imageData) {
         const blob = await (await fetch(imageData)).blob();
         
-        const response = await fetch('https://api-inference.huggingface.co/models/your-username/smart-scanner-model', {
+        const response = await fetch('https://api-inference.huggingface.co/models/oculotest/smart-scanner-model', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer hf_your_token_here',
+                'Authorization': 'Bearer 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',
                 'Content-Type': 'application/json'
             },
             body: blob
