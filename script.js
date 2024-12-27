@@ -66,17 +66,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function enhanceImage(imageDataURL) {
-        const img = new Image();
-        img.src = imageDataURL;
-        await new Promise(resolve => img.onload = resolve);
-
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = img.width;
-        tempCanvas.height = img.height;
-        const ctx = tempCanvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
-
-        return tempCanvas.toDataURL('image/jpeg', 0.9);
+        try {
+            const img = new Image();
+            img.src = imageDataURL;
+            await new Promise(resolve => img.onload = resolve);
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 512;
+            tempCanvas.height = 512;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, 512, 512);
+            
+            return tempCanvas.toDataURL('image/jpeg', 0.9);
+        } catch (error) {
+            throw new Error('Image enhancement failed');
+        }
     }
 
     async function sendImageToModel(imageData) {
