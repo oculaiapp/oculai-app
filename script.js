@@ -1,3 +1,23 @@
+function evaluateImageQuality(canvas) {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    let brightness = 0, sharpness = 0;
+
+    for (let i = 0; i < pixels.length; i += 4) {
+        const avg = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+        brightness += avg;
+        if (i > 4) {
+            sharpness += Math.abs(avg - pixels[i - 4]);
+        }
+    }
+
+    brightness /= (canvas.width * canvas.height);
+    sharpness /= (canvas.width * canvas.height);
+
+    return { brightness: brightness.toFixed(2), sharpness: sharpness.toFixed(2) };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -50,15 +70,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    captureBtn.addEventListener('click', async () => {
+    captureBtn.addEventListener('click', () => {
         if (!isCameraOn) {
             alert('Please turn on the camera to capture an image.');
             return;
         }
-
+    
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
+    
+        const quality = evaluateImageQuality(canvas);
+        alert(`Brightness: ${quality.brightness}, Sharpness: ${quality.sharpness}`);
 
         // Convert to base64
         const imageData = canvas.toDataURL('image/jpeg');
