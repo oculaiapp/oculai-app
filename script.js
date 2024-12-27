@@ -93,8 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const response = await fetch('https://api-inference.huggingface.co/models/oculotest/smart-scanner-model', {
             method: 'POST',
             headers: {
-                'Authorization': 'Bearer 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',
-                'Content-Type': 'application/json'
+                'Authorization': 'Bearer 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'
             },
             body: blob
         });
@@ -102,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!response.ok) {
             throw new Error('Failed to process image');
         }
-
+    
         const result = await response.json();
         return {
             predicted_label: result[0].label,
@@ -122,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContent.innerHTML = `
             <div class="result-message">
                 <h3>${message}</h3>
-                <p>${result.predicted_label} (Confidence: ${result.confidence.toFixed(2)}%)</p>
+                <p>${result.predicted_label} (Confidence: ${result.confidence ? result.confidence.toFixed(2) : 0}%)</p>
             </div>
         `;
     }
