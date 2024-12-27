@@ -134,5 +134,34 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
+    async function populateCameraOptions() {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        const cameraOptions = document.createElement('select');
+        cameraOptions.id = "camera-options";
+    
+        videoDevices.forEach((device, index) => {
+            const option = document.createElement('option');
+            option.value = device.deviceId;
+            option.textContent = device.label || `Camera ${index + 1}`;
+            cameraOptions.appendChild(option);
+        });
+    
+        document.querySelector('.camera-controls').appendChild(cameraOptions);
+    
+        cameraOptions.addEventListener('change', () => {
+            currentFacingMode = cameraOptions.value;
+            if (isCameraOn) {
+                stopCamera();
+                initCamera({ deviceId: { exact: currentFacingMode } });
+            }
+        });
+    }
+
     initCamera();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        populateCameraOptions();
+    });
 });
