@@ -30,32 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Populate camera options dropdown
-    async function populateCameraOptions() {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-
-        const cameraOptions = document.createElement('select');
-        cameraOptions.id = "camera-options";
-
-        videoDevices.forEach((device, index) => {
-            const option = document.createElement('option');
-            option.value = device.deviceId;
-            option.textContent = device.label || `Camera ${index + 1}`;
-            cameraOptions.appendChild(option);
-        });
-
-        document.querySelector('.camera-controls').appendChild(cameraOptions);
-
-        cameraOptions.addEventListener('change', () => {
-            currentFacingMode = cameraOptions.value;
-            if (isCameraOn) {
-                stopCamera();
-                initCamera({ video: { deviceId: { exact: currentFacingMode } } });
-            }
-        });
-    }
-
     // Add AR overlay canvas
     function addOverlayCanvas() {
         const overlayCanvas = document.createElement('canvas');
@@ -222,5 +196,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
      // Initialize everything
      initCamera().then(() => addOverlayCanvas());
-     populateCameraOptions();
 });
