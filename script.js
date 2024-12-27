@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // File upload handling
+    const fileUpload = document.getElementById('file-upload');
+    const uploadBtn = document.getElementById('upload-btn');
+
     function addOverlayCanvas() {
         const overlayCanvas = document.createElement('canvas');
         overlayCanvas.id = "overlay";
@@ -164,6 +168,57 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             loadingSpinner.classList.add('hidden');
             displayResult("Error during analysis", { predicted_label: "Failed to process image", confidence: 0 });
+        }
+    });
+
+    uploadBtn.addEventListener('click', () => {
+        fileUpload.click();
+    });
+    
+    fileUpload.addEventListener('change', async (event) => {
+        if (event.target.files && event.target.files[0]) {
+            const file = event.target.files[0];
+            
+            // Show loading state
+            loadingSpinner.classList.remove('hidden');
+            
+            try {
+                // Convert file to base64
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const imageData = e.target.result;
+                    
+                    // Create temporary image for resizing
+                    const img = new Image();
+                    img.onload = async () => {
+                        // Create canvas for resizing
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = 512;
+                        tempCanvas.height = 512;
+                        const ctx = tempCanvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, 512, 512);
+                        
+                        // Get resized image data
+                        const resizedImageData = tempCanvas.toDataURL('image/jpeg', 0.9);
+                        
+                        try {
+                            const result = await sendImageToModel(resizedImageData);
+                            loadingSpinner.classList.add('hidden');
+                            resultContainer.classList.remove('hidden');
+                            displayResult("Analysis Complete!", result);
+                        } catch (error) {
+                            loadingSpinner.classList.add('hidden');
+                            displayResult("Error during analysis", { error: "Failed to process image" });
+                        }
+                    };
+                    img.src = imageData;
+                };
+                reader.readAsDataURL(file);
+                
+            } catch (error) {
+                loadingSpinner.classList.add('hidden');
+                displayResult("Error during analysis", { error: "Failed to process image" });
+            }
         }
     });
 
