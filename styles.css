@@ -155,3 +155,23 @@ h1 {
 #toggle-camera-btn:hover, #switch-camera-btn:hover {
     background: var(--primary-color);
 }
+.upload-controls {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+#upload-btn {
+    padding: 12px 24px;
+    background: var(--accent-color);
+    color: var(--secondary-color);
+    border: none;
+    border-radius: 25px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#upload-btn:hover {
+    background: var(--primary-color);
+}
