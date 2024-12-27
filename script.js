@@ -88,25 +88,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function sendImageToModel(imageData) {
-        const blob = await (await fetch(imageData)).blob();
+        const TIMEOUT_DURATION = 10000; // 10 seconds in milliseconds
         
-        const response = await fetch('https://api-inference.huggingface.co/models/oculotest/smart-scanner-model', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer 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'
-            },
-            body: blob
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Analysis timeout after 10 seconds')), TIMEOUT_DURATION);
         });
         
-        if (!response.ok) {
-            throw new Error('Failed to process image');
-        }
+        const analysisPromise = new Promise(async (resolve, reject) => {
+            try {
+                const blob = await (await fetch(imageData)).blob();
+                
+                const response = await fetch('https://api-inference.huggingface.co/models/oculotest/smart-scanner-model', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer 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'
+                    },
+                    body: blob
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to process image');
+                }
+                
+                const result = await response.json();
+                resolve({
+                    predicted_label: result[0].label,
+                    confidence: result[0].score * 100
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
     
-        const result = await response.json();
-        return {
-            predicted_label: result[0].label,
-            confidence: result[0].score * 100
-        };
+        try {
+            return await Promise.race([analysisPromise, timeoutPromise]);
+        } catch (error) {
+            if (error.message.includes('timeout')) {
+                throw new Error('Analysis timed out. Please try again.');
+            }
+            throw error;
+        }
     }
 
     function displayResult(message, result) {
