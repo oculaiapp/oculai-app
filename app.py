@@ -49,20 +49,32 @@ st.markdown(
 # Load the model from Hugging Face
 @st.cache_resource
 def load_model():
-    # Download the model file from Hugging Face
-    url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
-    response = requests.get(url)
-    response.raise_for_status()  # Ensure download was successful
+    try:
+        # Download the model file from Hugging Face
+        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
+        response = requests.get(url)
+        response.raise_for_status()  # Ensure download was successful
 
-    # Load pretrained ResNet18 and adjust for our task
-    model = models.resnet18(pretrained=True)
-    model.fc = torch.nn.Linear(model.fc.in_features, 5)  # Adjust output layer for 5 classes
+        # Load pretrained ResNet18 and adjust for our task
+        model = models.resnet18(pretrained=True)
+        model.fc = torch.nn.Linear(model.fc.in_features, 5)  # Adjust output layer for 5 classes
 
-    # Load state_dict into the model
-    state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-    model.load_state_dict(state_dict)
-    model.eval()  # Set to evaluation mode
-    return model
+        # Load state_dict into the model
+        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
+
+        # Handle potential key mismatches in state_dict
+        try:
+            model.load_state_dict(state_dict)
+        except RuntimeError as e:
+            st.warning("Attempting to load state_dict with strict=False due to key mismatches.")
+            model.load_state_dict(state_dict, strict=False)
+
+        model.eval()  # Set to evaluation mode
+        return model
+
+    except Exception as e:
+        st.error(f"Error loading the model: {e}")
+        raise e
 
 model = load_model()
 
@@ -109,19 +121,24 @@ if img:
 
         # Preprocess and predict
         input_tensor = preprocess_image(img)
-        probabilities = predict(input_tensor)
-
-        # Map stages to labels
-        stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
-        prediction = stages[probabilities.index(max(probabilities))]
-
-        # Display results in a styled format
-        st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
         
-        st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
-        
-        for stage, prob in zip(stages, probabilities):
-            st.write(f"{stage}: {prob * 100:.2f}%")
-            st.progress(prob)
+        try:
+            probabilities = predict(input_tensor)
+
+            # Map stages to labels
+            stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
+            prediction = stages[probabilities.index(max(probabilities))]
+
+            # Display results in a styled format
+            st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
+            
+            st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
+            
+            for stage, prob in zip(stages, probabilities):
+                st.write(f"{stage}: {prob * 100:.2f}%")
+                st.progress(prob)
+
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
 else:
     st.info("Please upload or capture an eye image to proceed.")
