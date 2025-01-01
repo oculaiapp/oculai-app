@@ -5,22 +5,27 @@ from PIL import Image
 import requests
 import io
 
-# Custom CSS for styling
+# Custom CSS for enhanced styling
 st.markdown(
     """
     <style>
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap');
         
+        /* General Styling */
         body {
             background-color: #0e1117;
             color: white;
             font-family: 'DM Sans', sans-serif;
+            margin: 0;
+            padding: 0;
         }
         h1, h2, h3 {
             text-align: center;
             color: #32CD32;
             animation: fadeIn 2s ease-in-out;
         }
+
+        /* Buttons */
         .stButton>button {
             background-color: #32CD32;
             color: white;
@@ -29,18 +34,66 @@ st.markdown(
             padding: 10px 20px;
             font-size: 16px;
             margin: 5px;
-            transition: background-color 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 4px 6px rgba(50, 205, 50, 0.4);
         }
         .stButton>button:hover {
             background-color: #228B22;
+            transform: scale(1.05);
+            box-shadow: 0px 6px 8px rgba(34, 139, 34, 0.6);
         }
+
+        /* Progress Bar */
         .stProgress > div > div {
             background-image: linear-gradient(90deg, #32CD32, #228B22);
         }
+        
+        /* Radio Buttons */
+        div[data-baseweb="radio"] > div {
+            background-color: #1a1d23;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        div[data-baseweb="radio"] > div:hover {
+            background-color: #242830;
+        }
+
+        /* File Uploader */
+        .stFileUploader {
+            border-radius: 10px !important;
+            background-color: #1a1d23 !important;
+            color: white !important;
+        }
+
+        /* Camera Input */
+        .stCameraInput {
+            border-radius: 10px !important;
+            background-color: #1a1d23 !important;
+        }
+
+        /* Spinner */
+        .stSpinner > div {
+            border-top-color: #32CD32 !important; 
+        }
+
+        /* Image Display */
+        img {
+            border-radius: 15px;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.6);
+        }
+
+        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        @keyframes glow {
+            from { box-shadow: 0px 4px 6px rgba(50,205,50,0.4); }
+            to { box-shadow: 0px 4px 12px rgba(50,205,50,0.8); }
+        }
+
     </style>
     """,
     unsafe_allow_html=True,
@@ -49,31 +102,20 @@ st.markdown(
 # Load the model from Hugging Face
 @st.cache_resource
 def load_model():
-    try:
-        # Download the model file from Hugging Face
-        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
-        response = requests.get(url)
-        response.raise_for_status()  # Ensure download was successful
+    # Download the model file from Hugging Face
+    url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
+    response = requests.get(url)
+    response.raise_for_status()  # Ensure download was successful
 
-        # Load pretrained ResNet18 and adjust for our task
-        model = models.resnet18(pretrained=True)
-        model.fc = torch.nn.Linear(model.fc.in_features, 5)  # Adjust output layer for 5 classes
+    # Load pretrained ResNet18 and adjust for our task
+    model = models.resnet18(pretrained=True)
+    model.fc = torch.nn.Linear(model.fc.in_features, 5)  # Adjust output layer for 5 classes
 
-        # Load state_dict into the model
-        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-
-        # Handle potential key mismatches in state_dict
-        try:
-            model.load_state_dict(state_dict)
-        except RuntimeError:
-            model.load_state_dict(state_dict, strict=False)
-
-        model.eval()  # Set to evaluation mode
-        return model
-
-    except Exception as e:
-        st.error(f"Error loading the model: {e}")
-        raise e
+    # Load state_dict into the model
+    state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
+    model.load_state_dict(state_dict)
+    model.eval()  # Set to evaluation mode
+    return model
 
 model = load_model()
 
@@ -120,24 +162,19 @@ if img:
 
         # Preprocess and predict
         input_tensor = preprocess_image(img)
+        probabilities = predict(input_tensor)
+
+        # Map stages to labels
+        stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
+        prediction = stages[probabilities.index(max(probabilities))]
+
+        # Display results in a styled format
+        st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
         
-        try:
-            probabilities = predict(input_tensor)
-
-            # Map stages to labels
-            stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
-            prediction = stages[probabilities.index(max(probabilities))]
-
-            # Display results in a styled format
-            st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
-            
-            st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
-            
-            for stage, prob in zip(stages, probabilities):
-                st.write(f"{stage}: {prob * 100:.2f}%")
-                st.progress(prob)
-
-        except Exception as e:
-            st.error(f"Error during prediction: {e}")
+        st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
+        
+        for stage, prob in zip(stages, probabilities):
+            st.write(f"{stage}: {prob * 100:.2f}%")
+            st.progress(prob)
 else:
     st.info("Please upload or capture an eye image to proceed.")
