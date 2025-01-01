@@ -65,8 +65,7 @@ def load_model():
         # Handle potential key mismatches in state_dict
         try:
             model.load_state_dict(state_dict)
-        except RuntimeError as e:
-            st.warning("Attempting to load state_dict with strict=False due to key mismatches.")
+        except RuntimeError:
             model.load_state_dict(state_dict, strict=False)
 
         model.eval()  # Set to evaluation mode
