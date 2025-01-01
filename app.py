@@ -102,20 +102,34 @@ st.markdown(
 # Load the model from Hugging Face
 @st.cache_resource
 def load_model():
-    # Download the model file from Hugging Face
-    url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
-    response = requests.get(url)
-    response.raise_for_status()  # Ensure download was successful
+    try:
+        # Download the model file from Hugging Face
+        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
+        response = requests.get(url)
+        response.raise_for_status()  # Ensure download was successful
 
-    # Load pretrained ResNet18 and adjust for our task
-    model = models.resnet18(pretrained=True)
-    model.fc = torch.nn.Linear(model.fc.in_features, 5)  # Adjust output layer for 5 classes
+        # Load pretrained ResNet18 and adjust for our task
+        model = models.resnet18(pretrained=True)
+        model.fc = torch.nn.Linear(model.fc.in_features, 5)  # Adjust output layer for 5 classes
 
-    # Load state_dict into the model
-    state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-    model.load_state_dict(state_dict)
-    model.eval()  # Set to evaluation mode
-    return model
+        # Load state_dict into the model
+        state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
+
+        # Remove "module." prefix if present in keys
+        new_state_dict = {}
+        for key, value in state_dict.items():
+            new_key = key.replace("module.", "")  # Remove "module." prefix
+            new_state_dict[new_key] = value
+
+        # Load the adjusted state dict with strict=False to handle mismatches
+        model.load_state_dict(new_state_dict, strict=False)
+
+        model.eval()  # Set to evaluation mode
+        return model
+
+    except Exception as e:
+        st.error(f"Error loading the model: {e}")
+        raise e
 
 model = load_model()
 
