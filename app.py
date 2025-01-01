@@ -5,126 +5,101 @@ from PIL import Image
 import requests
 import io
 
-# Custom CSS for enhanced styling
 st.markdown(
     """
     <style>
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap');
-        
-        /* General Styling */
-        body {
-            background-color: #0e1117;
-            color: white;
-            font-family: 'DM Sans', sans-serif;
+
+        html body {
+            background-color: #0e1117 !important;
+            color: white !important;
+            font-family: 'DM Sans', sans-serif !important;
             margin: 0;
             padding: 0;
         }
-        h1, h2, h3 {
-            text-align: center;
-            color: #32CD32;
-            animation: fadeIn 2s ease-in-out;
+
+        div h1, div h2, div h3 {
+            text-align: center !important;
+            color: #32CD32 !important;
+            animation: fadeIn 2s ease-in-out !important;
         }
 
-        /* Buttons */
-        .stButton>button {
-            background-color: #32CD32;
-            color: white;
-            border-radius: 10px;
-            border: none;
-            padding: 10px 20px;
-            font-size: 16px;
-            margin: 5px;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0px 4px 6px rgba(50, 205, 50, 0.4);
+        div.stButton > button {
+            background-color: #32CD32 !important;
+            color: white !important;
+            border-radius: 10px !important;
+            border: none !important;
+            padding: 10px 20px !important;
+            font-size: 16px !important;
+            margin: 5px !important;
+            transition: all 0.3s ease-in-out !important;
+            box-shadow: 0px 4px 6px rgba(50, 205, 50, 0.4) !important;
         }
-        .stButton>button:hover {
-            background-color: #228B22;
-            transform: scale(1.05);
-            box-shadow: 0px 6px 8px rgba(34, 139, 34, 0.6);
+        div.stButton > button:hover {
+            background-color: #228B22 !important;
+            transform: scale(1.05) !important;
+            box-shadow: 0px 6px 8px rgba(34, 139, 34, 0.6) !important;
         }
 
-        /* Progress Bar */
-        .stProgress > div > div {
-            background-image: linear-gradient(90deg, #32CD32, #228B22);
+        div.stProgress > div > div {
+            background-image: linear-gradient(90deg, #32CD32, #228B22) !important;
         }
-        
-        /* Radio Buttons */
+
         div[data-baseweb="radio"] > div {
-            background-color: #1a1d23;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 10px;
+            background-color: #1a1d23 !important;
+            border-radius: 10px !important;
+            padding: 10px !important;
+            margin-bottom: 10px !important;
         }
         div[data-baseweb="radio"] > div:hover {
-            background-color: #242830;
+            background-color: #242830 !important;
         }
 
-        /* File Uploader */
         .stFileUploader {
             border-radius: 10px !important;
             background-color: #1a1d23 !important;
             color: white !important;
         }
 
-        /* Camera Input */
         .stCameraInput {
             border-radius: 10px !important;
             background-color: #1a1d23 !important;
         }
 
-        /* Spinner */
         .stSpinner > div {
             border-top-color: #32CD32 !important; 
         }
 
-        /* Image Display */
         img {
-            border-radius: 15px;
-            box-shadow: 0px 4px 8px rgba(0,0,0,0.6);
+            border-radius: 15px !important;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.6) !important;
         }
 
-        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
-
-        @keyframes glow {
-            from { box-shadow: 0px 4px 6px rgba(50,205,50,0.4); }
-            to { box-shadow: 0px 4px 12px rgba(50,205,50,0.8); }
-        }
-
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# Load the model from Hugging Face
 @st.cache_resource
 def load_model():
     try:
-        # Download the model file from Hugging Face
         url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
         response = requests.get(url)
         response.raise_for_status()  # Ensure download was successful
 
-        # Load pretrained ResNet18 and adjust for our task
         model = models.resnet18(pretrained=True)
-        model.fc = torch.nn.Linear(model.fc.in_features, 5)  # Adjust output layer for 5 classes
+        model.fc = torch.nn.Linear(model.fc.in_features, 5)
 
-        # Load state_dict into the model
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-
-        # Remove "module." prefix if present in keys
-        new_state_dict = {}
-        for key, value in state_dict.items():
-            new_key = key.replace("module.", "")  # Remove "module." prefix
-            new_state_dict[new_key] = value
-
-        # Load the adjusted state dict with strict=False to handle mismatches
+        
+        new_state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()} 
         model.load_state_dict(new_state_dict, strict=False)
 
-        model.eval()  # Set to evaluation mode
+        model.eval()
         return model
 
     except Exception as e:
@@ -133,7 +108,6 @@ def load_model():
 
 model = load_model()
 
-# Define preprocessing transformations with data augmentation
 def preprocess_image(image):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -145,18 +119,15 @@ def preprocess_image(image):
     ])
     return transform(image).unsqueeze(0)
 
-# Prediction function
 def predict(image):
     with torch.no_grad():
         outputs = model(image)
         probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
         return probabilities
 
-# Streamlit UI Design
 st.title("SMART Scanner")
 st.subheader("One Model, Countless Diseases")
 
-# Toggle for input method (upload or capture)
 input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
 
 img = None
@@ -174,21 +145,23 @@ if img:
     with st.spinner("Analyzing..."):
         st.image(img, caption="Selected Image", use_column_width=True)
 
-        # Preprocess and predict
         input_tensor = preprocess_image(img)
-        probabilities = predict(input_tensor)
-
-        # Map stages to labels
-        stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
-        prediction = stages[probabilities.index(max(probabilities))]
-
-        # Display results in a styled format
-        st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
         
-        st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
-        
-        for stage, prob in zip(stages, probabilities):
-            st.write(f"{stage}: {prob * 100:.2f}%")
-            st.progress(prob)
+        try:
+            probabilities = predict(input_tensor)
+
+            stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
+            prediction = stages[probabilities.index(max(probabilities))]
+
+            st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
+            
+            st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
+            
+            for stage, prob in zip(stages, probabilities):
+                st.write(f"{stage}: {prob * 100:.2f}%")
+                st.progress(prob)
+
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
 else:
     st.info("Please upload or capture an eye image to proceed.")
