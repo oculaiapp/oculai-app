@@ -32,8 +32,26 @@ def load_model():
         model = EfficientNet.from_name('efficientnet-b0')
         model._fc = torch.nn.Linear(model._fc.in_features, 5)  # Adjust for 5 classes
 
+        # Load state_dict from URL
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-        model.load_state_dict(state_dict)
+
+        # Remove 'module.' prefix if present in state_dict keys (from nn.DataParallel)
+        new_state_dict = {}
+        for k, v in state_dict.items():
+            if k.startswith("module."):
+                new_state_dict[k[7:]] = v  # Remove 'module.' prefix
+            else:
+                new_state_dict[k] = v
+
+        # Load state_dict into model with strict=False to ignore mismatched keys
+        missing_keys, unexpected_keys = model.load_state_dict(new_state_dict, strict=False)
+
+        # Log missing/unexpected keys for debugging
+        if missing_keys:
+            st.warning(f"Missing keys in state_dict: {missing_keys}")
+        if unexpected_keys:
+            st.warning(f"Unexpected keys in state_dict: {unexpected_keys}")
+
         model.eval()
         return model
 
