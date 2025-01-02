@@ -24,7 +24,7 @@ st.markdown(
 @st.cache_resource
 def load_model():
     try:
-        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/efficientnetb0.pth"
+        url = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/ss_model.pth"
         response = requests.get(url)
         response.raise_for_status()
 
