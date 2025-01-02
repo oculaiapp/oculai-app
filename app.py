@@ -70,8 +70,8 @@ def predict(image):
         probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
         return probabilities
 
-st.title("SMART Scanner")
-st.subheader("Enhanced Diabetic Retinopathy Detection")
+st.title("OculAI")
+st.subheader("One Model, Countless Diseases")
 
 input_method = st.radio("Choose Input Method", ("Upload Image", "Capture from Camera"))
 
