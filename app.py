@@ -9,7 +9,7 @@ import numpy as np
 # Set page configuration with light/dark mode support (native Streamlit setting)
 st.set_page_config(
     page_title="OculAI",
-    page_icon="h",
+    page_icon="👁️",
     layout="wide",
     initial_sidebar_state="auto",
 )
