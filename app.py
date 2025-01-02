@@ -17,7 +17,7 @@ st.markdown(
         }
         div h1, div h2, div h3 {
             text-align: center !important;
-            color: #32CD32 !important;
+            color: #00FFFF !important;
         }
         div.stButton > button {
             background-color: #32CD32 !important;
