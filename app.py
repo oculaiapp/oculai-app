@@ -6,29 +6,15 @@ import requests
 import io
 import numpy as np
 
-st.markdown(
-    """
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap');
-        html body {
-            background-color: #0e1117 !important;
-            color: white !important;
-            font-family: 'DM Sans', sans-serif !important;
-        }
-        div h1, div h2, div h3 {
-            text-align: center !important;
-            color: #00FFFF !important;
-        }
-        div.stButton > button {
-            background-color: #32CD32 !important;
-            color: white !important;
-            border-radius: 10px !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
+# Set page configuration with light/dark mode support (native Streamlit setting)
+st.set_page_config(
+    page_title="OculAI",
+    page_icon="👁️",
+    layout="wide",
+    initial_sidebar_state="auto",
 )
 
+# Function to load the model
 @st.cache_resource
 def load_model():
     try:
@@ -52,6 +38,7 @@ def load_model():
 
 model = load_model()
 
+# Image preprocessing function
 def preprocess_image(image):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -64,12 +51,14 @@ def preprocess_image(image):
     ])
     return transform(image).unsqueeze(0)
 
+# Prediction function
 def predict(image):
     with torch.no_grad():
         outputs = model(image)
         probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
         return probabilities
 
+# Streamlit interface
 st.title("OculAI")
 st.subheader("One Model, Countless Diseases")
 
