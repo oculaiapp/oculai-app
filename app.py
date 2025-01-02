@@ -6,7 +6,6 @@ import requests
 import io
 import numpy as np
 
-# Set page configuration with light/dark mode support (native Streamlit setting)
 st.set_page_config(
     page_title="OculAI",
     page_icon="👁️",
@@ -14,7 +13,6 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-# Function to load the model
 @st.cache_resource
 def load_model():
     try:
@@ -22,7 +20,7 @@ def load_model():
         response = requests.get(url)
         response.raise_for_status()
 
-        model = models.resnet50(pretrained=True)  # Use ResNet50 for better feature extraction
+        model = models.resnet50(pretrained=True)
         model.fc = torch.nn.Linear(model.fc.in_features, 5)
 
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
@@ -45,7 +43,7 @@ def preprocess_image(image):
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomRotation(15),
         transforms.ColorJitter(brightness=0.3, contrast=0.3),
-        transforms.GaussianBlur(kernel_size=(5, 5)),  # Advanced augmentation
+        transforms.GaussianBlur(kernel_size=(5, 5)),
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -58,7 +56,6 @@ def predict(image):
         probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
         return probabilities
 
-# Streamlit interface
 st.title("OculAI")
 st.subheader("One Model, Countless Diseases")
 
