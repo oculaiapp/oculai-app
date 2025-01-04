@@ -23,7 +23,7 @@ def load_model():
         # Use EfficientNet as per the PDF
         model = models.efficientnet_b0(pretrained=True)
         num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, 5)  # 5 classes
+        model.classifier[1] = torch.nn.Linear(num_features, 4)  # 4 classes for the new categories
 
         # Load state dictionary
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
@@ -80,15 +80,16 @@ if img:
         try:
             probabilities = predict(input_tensor)
 
-            stages = ["No DR (0)", "Mild (1)", "Moderate (2)", "Severe (3)", "Proliferative DR (4)"]
-            prediction = stages[np.argmax(probabilities)]
+            # Updated categories
+            categories = ["Normal", "Cataracts", "Diabetic Retinopathy", "Glaucoma"]
+            prediction = categories[np.argmax(probabilities)]
 
-            st.markdown(f"<h3>Predicted Stage: {prediction}</h3>", unsafe_allow_html=True)
+            st.markdown(f"<h3>Predicted Category: {prediction}</h3>", unsafe_allow_html=True)
             
             st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
             
-            for stage, prob in zip(stages, probabilities):
-                st.write(f"{stage}: {prob * 100:.2f}%")
+            for category, prob in zip(categories, probabilities):
+                st.write(f"{category}: {prob * 100:.2f}%")
                 st.progress(prob)
 
         except Exception as e:
