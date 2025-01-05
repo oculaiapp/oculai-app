@@ -20,17 +20,15 @@ def load_model():
         response = requests.get(url)
         response.raise_for_status()
 
-        # Use EfficientNet as per the PDF
-        model = models.efficientnet_b0(pretrained=True)
+        model = models.efficientnet_b0(pretrained=False)
         num_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(num_features, 4)  # 4 classes for the new categories
+        model.classifier[1] = torch.nn.Linear(num_features, 4)
 
-        # Load state dictionary
         state_dict = torch.load(io.BytesIO(response.content), map_location=torch.device("cpu"))
-        model.load_state_dict(state_dict, strict=False)
+        model.load_state_dict(state_dict, strict=True)
 
         model.eval()
-        return model
+        return torch.jit.script(model)  # Use TorchScript for improved performance
 
     except Exception as e:
         st.error(f"Error loading the model: {e}")
@@ -47,11 +45,11 @@ def preprocess_image(image):
     ])
     return transform(image).unsqueeze(0)
 
+@torch.no_grad()
 def predict(image):
-    with torch.no_grad():
-        outputs = model(image)
-        probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
-        return probabilities
+    outputs = model(image)
+    probabilities = torch.nn.functional.softmax(outputs, dim=1).squeeze().tolist()
+    return probabilities
 
 st.title("OculAI")
 st.subheader("One Model, Countless Diseases")
@@ -85,7 +83,6 @@ if img:
             
             st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
             
-            # Define colors for each category
             colors = {
                 "Normal": "#00ff00",
                 "Cataracts": "#ffff00",
@@ -96,7 +93,6 @@ if img:
             for category, prob in zip(categories, probabilities):
                 st.write(f"<h4 style='font-size: 22px;'><strong>{category}:</strong> {prob * 100:.2f}%</h4>", unsafe_allow_html=True)
                 
-                # Custom progress bar with color styling
                 progress_html = f"""
                 <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
                     <div style="background-color: {colors[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
