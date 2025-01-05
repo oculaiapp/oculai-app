@@ -5,7 +5,6 @@ from PIL import Image
 import requests
 import io
 import numpy as np
-import cv2
 
 st.set_page_config(
     page_title="OculAI",
@@ -53,9 +52,12 @@ class GradCAM:
 
 def show_cam_on_image(img, mask):
     heatmap = np.uint8(255 * mask)
-    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
-    superimposed_img = heatmap * 0.4 + img
-    superimposed_img = np.uint8(255 * superimposed_img / np.max(superimposed_img))
+    heatmap = Image.fromarray(heatmap).convert('RGB')
+    heatmap = heatmap.resize((img.shape[1], img.shape[0]))
+    heatmap = np.array(heatmap)
+    
+    superimposed_img = heatmap * 0.4 + img * 255
+    superimposed_img = np.uint8(superimposed_img / np.max(superimposed_img))
     return superimposed_img
 
 # Load model with caching
