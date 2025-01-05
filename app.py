@@ -38,7 +38,6 @@ def load_model():
 
 model = load_model()
 
-# Updated preprocessing function based on PDF details
 def preprocess_image(image):
     transform = transforms.Compose([
         transforms.Resize(256),
@@ -48,7 +47,6 @@ def preprocess_image(image):
     ])
     return transform(image).unsqueeze(0)
 
-# Prediction function remains unchanged
 def predict(image):
     with torch.no_grad():
         outputs = model(image)
@@ -80,7 +78,6 @@ if img:
         try:
             probabilities = predict(input_tensor)
 
-            # Updated categories
             categories = ["Normal", "Cataracts", "Diabetic Retinopathy", "Glaucoma"]
             prediction = categories[np.argmax(probabilities)]
 
@@ -88,9 +85,24 @@ if img:
             
             st.markdown("<h3>Probabilities:</h3>", unsafe_allow_html=True)
             
+            # Define colors for each category
+            colors = {
+                "Normal": "#00ff00",
+                "Cataracts": "#ffff00",
+                "Diabetic Retinopathy": "#ff0000",
+                "Glaucoma": "#0000ff"
+            }
+            
             for category, prob in zip(categories, probabilities):
-                st.write(f"{category}: {prob * 100:.2f}%")
-                st.progress(prob)
+                st.write(f"<h4 style='font-size: 22px;'><strong>{category}:</strong> {prob * 100:.2f}%</h4>", unsafe_allow_html=True)
+                
+                # Custom progress bar with color styling
+                progress_html = f"""
+                <div style="background-color: #e0e0e0; border-radius: 25px; width: 100%; height: 18px; margin-bottom: 10px;">
+                    <div style="background-color: {colors[category]}; width: {prob * 100}%; height: 100%; border-radius: 25px;"></div>
+                </div>
+                """
+                st.markdown(progress_html, unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"Error during prediction: {e}")
