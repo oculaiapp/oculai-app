@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # Constants
-MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/found_eyegvd_92.pth"
+MODEL_URL = "https://huggingface.co/oculotest/smart-scanner-model/resolve/main/found_eyegvd_94.pth"
 CATEGORIES = ["Normal", "Cataracts", "Diabetic Retinopathy", "Glaucoma"]
 COLORS = {
     "Normal": "#00ff00",
