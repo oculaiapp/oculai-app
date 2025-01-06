@@ -27,7 +27,7 @@ COLORS = {
     "Normal": "#00ff00",
     "Cataracts": "#ffff00",
     "Diabetic Retinopathy": "#ff0000",
-    "Glaucoma": "#0000ff"
+    "Glaucoma": "#0082cb"
 }
 
 # Load model with caching
